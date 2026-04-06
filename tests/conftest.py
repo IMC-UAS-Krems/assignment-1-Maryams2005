@@ -10,76 +10,76 @@ from datetime import date, datetime, timedelta
 from streaming.platform import StreamingPlatform
 from streaming.artists import Artist
 from streaming.albums import Album
-from streaming.tracks import (
-    AlbumTrack,
-    SingleRelease,
-    InterviewEpisode,
-    NarrativeEpisode,
-    AudiobookTrack,
-)
-from streaming.users import FreeUser, PremiumUser, FamilyAccountUser, FamilyMember
+from streaming.tracks import AlbumTrack
+from streaming.users import FreeUser, PremiumUser
 from streaming.sessions import ListeningSession
-from streaming.playlists import Playlist, CollaborativePlaylist
 
 
 # ---------------------------------------------------------------------------
-# Helper - timestamps relative to the real current time so that the
-# "last 30 days" window in Q2 always contains RECENT sessions.
+# Time helpers
 # ---------------------------------------------------------------------------
 FIXED_NOW = datetime.now().replace(microsecond=0)
-RECENT = FIXED_NOW - timedelta(days=10)   # well within 30-day window
-OLD    = FIXED_NOW - timedelta(days=60)   # outside 30-day window
+RECENT = FIXED_NOW - timedelta(days=10)   # inside 30-day window
+OLD = FIXED_NOW - timedelta(days=60)      # outside 30-day window
 
 
+# ---------------------------------------------------------------------------
+# Main platform fixture
+# ---------------------------------------------------------------------------
 @pytest.fixture
-def platform() -> StreamingPlatform:
-    """Return a fully populated StreamingPlatform instance."""
+def platform():
     platform = StreamingPlatform("TestStream")
 
-    # ------------------------------------------------------------------
-    # Artists
-    # ------------------------------------------------------------------
-    pixels  = Artist("a1", "Pixels",    genre="pop")
-    platform.add_artist(pixels)
+    # ------------------ Artist ------------------
+    artist = Artist("a1", "Pixels", "pop")
+    platform.add_artist(artist)
 
-    # ------------------------------------------------------------------
-    # Albums & AlbumTracks
-    # ------------------------------------------------------------------
-    dd = Album("alb1", "Digital Dreams", artist=pixels, release_year=2022)
-    t1 = AlbumTrack("t1", "Pixel Rain",      180, "pop",  pixels, track_number=1)
-    t2 = AlbumTrack("t2", "Grid Horizon",    210, "pop",  pixels, track_number=2)
-    t3 = AlbumTrack("t3", "Vector Fields",   195, "pop",  pixels, track_number=3)
-    for track in (t1, t2, t3):
-        dd.add_track(track)
-        platform.add_track(track)
-        pixels.add_track(track)
-    platform.add_album(dd)
+    # ------------------ Album + Tracks ------------------
+    album = Album("alb1", "Digital Dreams", artist, 2022)
 
+    t1 = AlbumTrack("t1", "Track1", 180, "pop", artist, 1)
+    t2 = AlbumTrack("t2", "Track2", 200, "pop", artist, 2)
 
-    # ------------------------------------------------------------------
-    # Users
-    # ------------------------------------------------------------------
-    alice = FreeUser("u1", "Alice",   age=30)
-    bob   = PremiumUser("u2", "Bob",   age=25, subscription_start=date(2023, 1, 1))
+    album.add_track(t1)
+    album.add_track(t2)
 
-    for user in (alice, bob):
-        platform.add_user(user)
+    platform.add_album(album)
+    platform.add_track(t1)
+    platform.add_track(t2)
 
+    # ------------------ Users ------------------
+    u1 = FreeUser("u1", "Alice", 30)
+    u2 = PremiumUser("u2", "Bob", 25, date(2023, 1, 1))
+
+    platform.add_user(u1)
+    platform.add_user(u2)
+
+    # ------------------ Sessions ------------------
+    s1 = ListeningSession("s1", u1, t1, RECENT, 120)
+    s2 = ListeningSession("s2", u2, t1, RECENT, 180)
+    s3 = ListeningSession("s3", u2, t2, RECENT, 200)
+
+    platform.record_session(s1)
+    platform.record_session(s2)
+    platform.record_session(s3)
 
     return platform
 
 
+# ---------------------------------------------------------------------------
+# Time fixtures
+# ---------------------------------------------------------------------------
 @pytest.fixture
-def fixed_now() -> datetime:
-    """Expose the shared FIXED_NOW constant to tests."""
+def fixed_now():
     return FIXED_NOW
 
 
 @pytest.fixture
-def recent_ts() -> datetime:
+def recent_ts():
     return RECENT
 
 
 @pytest.fixture
-def old_ts() -> datetime:
+def old_ts():
+    # timestamp outside 30-day window for testing filtering logic
     return OLD
