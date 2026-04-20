@@ -64,8 +64,6 @@ def platform():
     platform.record_session(s3)
 
     return platform
-
-
 # ---------------------------------------------------------------------------
 # Time fixtures
 # ---------------------------------------------------------------------------
@@ -82,4 +80,4 @@ def recent_ts():
 @pytest.fixture
 def old_ts():
     # timestamp outside 30-day window for testing filtering logic
-    return OLD
+    return OLD   
