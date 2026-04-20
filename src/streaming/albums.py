@@ -31,7 +31,7 @@ class Album:
 
     def add_track(self, track: "AlbumTrack") -> None:
         if track not in self.tracks:
-            album = self
+            track.album = self
             self.tracks.append(track)
             self.tracks.sort(key=lambda t: t.track_number)
 

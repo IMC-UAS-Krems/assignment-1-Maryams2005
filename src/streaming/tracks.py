@@ -7,6 +7,7 @@ Implement the class hierarchy for all playable content on the platform.
 from __future__ import annotations
 
 from abc import ABC
+from typing import Optional, Any
 
 
 class Track(ABC):
@@ -25,7 +26,7 @@ class Track(ABC):
     def duration_minutes(self) -> float:
         return self.duration_seconds / 60.0
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Track):
             return False
         return self.track_id == other.track_id
@@ -44,7 +45,7 @@ class Song(Track):
         title: str,
         duration_seconds: int,
         genre: str,
-        artist,
+        artist: Any,
     ) -> None:
         super().__init__(track_id, title, duration_seconds, genre)
         self.artist = artist
@@ -59,8 +60,8 @@ class SingleRelease(Song):
         title: str,
         duration_seconds: int,
         genre: str,
-        artist,
-        release_date,
+        artist: Any,
+        release_date: Any,
     ) -> None:
         super().__init__(track_id, title, duration_seconds, genre, artist)
         self.release_date = release_date
@@ -73,11 +74,11 @@ class AlbumTrack(Song):
         title: str,
         duration_seconds: int,
         genre: str,
-        artist,
+        artist: Any,
         track_number: int = 0,
     ) -> None:
         super().__init__(track_id, title, duration_seconds, genre, artist)
-        self.album = None
+        self.album: Optional[Any] = None
         self.track_number = track_number
 
 
